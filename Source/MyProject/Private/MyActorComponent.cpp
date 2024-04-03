@@ -2,7 +2,7 @@
 
 
 #include "MyActorComponent.h"
-
+#include "Kismet/KismetMathLibrary.h"
 // Sets default values for this component's properties
 UMyActorComponent::UMyActorComponent()
 {
@@ -18,7 +18,11 @@ UMyActorComponent::UMyActorComponent()
 void UMyActorComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	const auto Owner = GetOwner();
+	Origin = Owner->GetActorLocation();
+	Destination = Origin;
+	// adds z hight to destinmation 
+	Destination.Z += HeightMax;
 	// ...
 	
 }
@@ -28,7 +32,22 @@ void UMyActorComponent::BeginPlay()
 void UMyActorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	const auto Owner = GetOwner();
 
+	
+	Time += DeltaTime; 
+	//normalize
+	const auto T = Time / Duration;
+	const auto NewPosition = UKismetMathLibrary::VLerp(Origin, Destination, T);
+	Owner->SetActorLocation(NewPosition);
+	if(Time >= Duration)
+	{
+		Time -= Duration;
+		// flips origin and destination
+		const auto temp = Origin;
+		Origin = Destination;
+		Destination = temp;
+	}
 	// ...
 }
 
